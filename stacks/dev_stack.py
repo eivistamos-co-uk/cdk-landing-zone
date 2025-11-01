@@ -9,13 +9,10 @@ from aws_cdk import (
 from constructs import Construct
 
 class DevStack(Stack):
-
-    def __init__(self, scope: Construct, construct_id: str, vpc: ec2.Vpc, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, vpc: ec2.Vpc, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
-        # ---------------------
-        # S3 Bucket (Dev)
-        # ---------------------
+        # S3 Bucket
         self.dev_bucket = s3.Bucket(
             self,
             "DevBucket",
@@ -24,33 +21,27 @@ class DevStack(Stack):
             auto_delete_objects=True,
         )
 
-        # ---------------------
-        # IAM Role (Dev Environment Scoped)
-        # ---------------------
+        # IAM Role
         self.dev_role = iam.Role(
             self,
             "DevRole",
-            assumed_by=iam.AccountRootPrincipal(),  # replace with proper user/role
+            assumed_by=iam.AccountRootPrincipal(),
             role_name="DevEnvironmentRole",
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"),
             ],
         )
 
-        # ---------------------------
-        # Optional EC2 (Dev)
-        # ---------------------------
+        # Optional EC2
         self.dev_instance = ec2.Instance(
             self,
             "DevInstance",
             instance_type=ec2.InstanceType("t3.micro"),
-            machine_image=ec2.MachineImage.latest_amazon_linux(),
+            machine_image=ec2.MachineImage.latest_amazon_linux2(),
             vpc=vpc,
         )
 
-        # ---------------------------
         # Outputs
-        # ---------------------------
         CfnOutput(self, "DevBucketName", value=self.dev_bucket.bucket_name)
         CfnOutput(self, "DevRoleARN", value=self.dev_role.role_arn)
-        CfnOutput(self, "DevInstanceId", value=self.dev_instance.instance_id)                
+        CfnOutput(self, "DevInstanceId", value=self.dev_instance.instance_id)
