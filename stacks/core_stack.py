@@ -1,7 +1,9 @@
 from aws_cdk import (
-    # Duration,
     Stack,
-    # aws_sqs as sqs,
+    aws_sns as sns,
+    aws_logs as logs,
+    aws_iam as iam,
+    RemovalPolicy,
 )
 from constructs import Construct
 
@@ -10,10 +12,57 @@ class CoreStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
+        #1 SNS Topic for Notifications
+        self.notification_topic = sns.Topic(
+            self,
+            "DeploymentNotifications",
+            display_name="Deployment Notifications",
+            topic_name="deployment-notifications",
+        )
 
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "CdkLandingZoneQueue",
-        #     visibility_timeout=Duration.seconds(300),
-        # )
+        #2 CloudWatch Log Group
+        self.log_group = logs.LogGroup(
+            self,
+            "CoreLogGroup",
+            log_group_name="/cdk/core-stack",
+            retention=logs.RetentionDays.ONE_WEEK,
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
+        #3 IAM Roles
+
+        #-DevOps Role
+        self.devops_role = iam.Role(
+            self,
+            "DevOpsRole",
+            assumed_by=iam.AccountRootPrincipal(),
+            role_name="DevOpsRole",
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
+            ],
+        )
+
+        #-ReadOnly Role
+        self.read_only_role = iam.Role(
+            self,
+            "ReadOnlyRole",
+            assumed_by=iam.AccountRootPrincipal(),
+            role_name="ReadOnlyRole",
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name("ReadOnlyAccess")
+            ],
+        )        
+
+        self.output_arns()
+
+        #5 Output ARNS
+    
+    def output_arns(self):
+        from aws_cdk import CfnOutput
+        CfnOutput(self, "SNSTopicARN", value=self.notification_topic.topic_arn)
+        CfnOutput(self, "CloudWatchLogGroupName", value=self.log_group.log_group_name)
+        CfnOutput(self, "DevOpsRoleARN", value=self.devops_role.role_arn)
+        CfnOutput(self, "ReadOnlyRoleARN", value=self.read_only_role.role_arn)
+
+
+        
