@@ -69,11 +69,11 @@ class NetworkStack(Stack):
 
     def _add_outputs(self):
         # Dev VPC
-        CfnOutput(self, "DevVpcId", value=self.dev_vpc.vpc_id)
+        CfnOutput(self, "DevVpcId", value=self.dev_vpc.vpc_id, export_name="DevVpcId")
         CfnOutput(self, "DevPublicSubnets", value=",".join([subnet.subnet_id for subnet in self.dev_vpc.public_subnets]))
         CfnOutput(self, "DevPrivateSubnets", value=",".join([subnet.subnet_id for subnet in self.dev_vpc.private_subnets]))
 
         # Prod VPC
-        CfnOutput(self, "ProdVpcId", value=self.prod_vpc.vpc_id)
+        CfnOutput(self, "ProdVpcId", value=self.prod_vpc.vpc_id, export_name="ProdVpcId")
         CfnOutput(self, "ProdPublicSubnets", value=",".join([subnet.subnet_id for subnet in self.prod_vpc.public_subnets]))
         CfnOutput(self, "ProdPrivateSubnets", value=",".join([subnet.subnet_id for subnet in self.prod_vpc.private_subnets]))
