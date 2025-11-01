@@ -7,7 +7,7 @@ from constructs import Construct
 
 class ProdStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, vpc, core_resources, env_name, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, vpc, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # The code that defines your stack goes here

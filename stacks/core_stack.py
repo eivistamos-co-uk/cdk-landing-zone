@@ -4,6 +4,7 @@ from aws_cdk import (
     aws_logs as logs,
     aws_iam as iam,
     RemovalPolicy,
+    CfnOutput,
 )
 from constructs import Construct
 
@@ -58,7 +59,6 @@ class CoreStack(Stack):
         #5 Output ARNS
     
     def output_arns(self):
-        from aws_cdk import CfnOutput
         CfnOutput(self, "SNSTopicARN", value=self.notification_topic.topic_arn)
         CfnOutput(self, "CloudWatchLogGroupName", value=self.log_group.log_group_name)
         CfnOutput(self, "DevOpsRoleARN", value=self.devops_role.role_arn)

@@ -1,13 +1,15 @@
 from aws_cdk import (
-    # Duration,
     Stack,
-    # aws_sqs as sqs,
+    aws_s3 as s3,
+    aws_ec2 as ec2,
+    aws_iam as iam,
+    CfnOutput
 )
 from constructs import Construct
 
 class DevStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, vpc, core_resources, env_name, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, vpc, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # The code that defines your stack goes here

@@ -10,22 +10,6 @@ app = cdk.App()
 # Core shared services
 
 core = CoreStack(app, "CoreStack")
-
-# Network per environment
-
-dev_network = NetworkStack(app, "DevNetworkStack", env_name="dev")
-prod_network = NetworkStack(app, "ProdNetworkStack", env_name="prod")
-
-# Environment resources
-
-dev = DevStack(app, "DevStack",
-               vpc=dev_network.vpc,
-               core_resources=core,
-               env_name="dev")
-
-prod = ProdStack(app, "ProdStack",
-                 vpc=prod_network.vpc,
-                 core_resources=core,
-                 env_name="prod")
+network_stack = NetworkStack(app, "NetworkStack")
 
 app.synth()
