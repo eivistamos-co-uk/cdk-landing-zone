@@ -41,18 +41,31 @@ class CoreStack(NestedStack):
         self.devops_role = iam.Role(
             self,
             "DevOpsRole",
-            assumed_by=iam.AccountRootPrincipal(),
+            assumed_by=iam.AccountRootPrincipal(), #ASSIGN TO IAM USER, GROUP, or SSO ROLES IN PROD.
             role_name="DevOpsRole",
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
-            ],
+        )
+
+        #-DevOps Role Permissions
+        #Restrict once requirements are defined.
+        self.devops_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[ 
+                    "cloudformation:*",
+                    "iam:PassRole",
+                    "s3:*",
+                    "ec2:*",
+                    "logs:*",
+                    "sns:*"
+                ],
+                resources=["*"],  # Restrict later to resources in the account
+            )
         )
 
         #-ReadOnly Role
         self.read_only_role = iam.Role(
             self,
             "ReadOnlyRole",
-            assumed_by=iam.AccountRootPrincipal(),
+            assumed_by=iam.AccountRootPrincipal(),  #ASSIGN TO IAM USER, GROUP, or SSO ROLES IN PROD.
             role_name="ReadOnlyRole",
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("ReadOnlyAccess")
@@ -65,7 +78,7 @@ class CoreStack(NestedStack):
             "CoreLogGroup",
             log_group_name="/cdk/core-stack",
             retention=logs.RetentionDays.ONE_WEEK,
-            removal_policy=RemovalPolicy.DESTROY
+            removal_policy=RemovalPolicy.DESTROY #Set to RETAIN for prod.
         )
 
         #2.3 Cloudwatch Metric Filter - for logs with ERROR

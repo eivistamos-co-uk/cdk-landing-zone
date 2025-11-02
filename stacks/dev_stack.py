@@ -13,6 +13,8 @@ class DevStack(NestedStack):
     def __init__(self, scope: Construct, construct_id: str, vpc: ec2.Vpc, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
+        account_id = Stack.of(self).account
+
         # S3 Bucket
         self.dev_bucket = s3.Bucket(
             self,
@@ -22,27 +24,34 @@ class DevStack(NestedStack):
             auto_delete_objects=True,
         )
 
-        # IAM Role
-        self.dev_role = iam.Role(
+        self.instance_role = iam.Role(
             self,
-            "DevRole",
-            assumed_by=iam.AccountRootPrincipal(),
-            role_name="DevEnvironmentRole",
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"),
-            ],
+            "DevInstanceRole",
+            assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
+            role_name=f"{construct_id}-InstanceRole",
         )
 
-        # Optional EC2
+        self.instance_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "s3:GetObject",
+                    "s3:PutObject",
+                ],
+                resources=[self.dev_bucket.arn_for_objects("*")],
+            )
+        )
+
+        # EC2 Instance
         self.dev_instance = ec2.Instance(
             self,
             "DevInstance",
             instance_type=ec2.InstanceType("t3.micro"),
             machine_image=ec2.MachineImage.latest_amazon_linux2(),
             vpc=vpc,
+            role=self.instance_role,
         )
+
 
         # Outputs
         CfnOutput(self, "DevBucketName", value=self.dev_bucket.bucket_name)
-        CfnOutput(self, "DevRoleARN", value=self.dev_role.role_arn)
         CfnOutput(self, "DevInstanceId", value=self.dev_instance.instance_id)

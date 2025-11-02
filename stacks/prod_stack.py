@@ -13,36 +13,45 @@ class ProdStack(NestedStack):
     def __init__(self, scope: Construct, construct_id: str, vpc: ec2.Vpc, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
+        account_id = Stack.of(self).account
+
         # S3 Bucket
         self.prod_bucket = s3.Bucket(
             self,
             "ProdBucket",
             bucket_name="cdk-landing-zone-prod-bucket",
-            removal_policy=RemovalPolicy.RETAIN, #DESTROY during Testing, RETAIN when project complete!
+            removal_policy=RemovalPolicy.DESTROY, #DESTROY during Testing, RETAIN when project complete!
             versioned=True,
+            encryption=s3.BucketEncryption.KMS_MANAGED, # SSE-KMS
         )
 
-        # IAM Role
-        self.prod_role = iam.Role(
+        self.instance_role = iam.Role(
             self,
-            "ProdRole",
-            assumed_by=iam.AccountRootPrincipal(),
-            role_name="ProdEnvironmentRole",
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3FullAccess"),
-            ],
+            "ProdInstanceRole",
+            assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
+            role_name=f"{construct_id}-InstanceRole",
         )
 
-        # Optional EC2
+        self.instance_role.add_to_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "s3:GetObject",
+                    "s3:PutObject",
+                ],
+                resources=[self.prod_bucket.arn_for_objects("*")],
+            )
+        )
+
+        #EC2 Instance
         self.prod_instance = ec2.Instance(
             self,
             "ProdInstance",
             instance_type=ec2.InstanceType("t3.micro"),
             machine_image=ec2.MachineImage.latest_amazon_linux2(),
             vpc=vpc,
+            role=self.instance_role,
         )
 
         # Outputs
         CfnOutput(self, "ProdBucketName", value=self.prod_bucket.bucket_name)
-        CfnOutput(self, "ProdRoleARN", value=self.prod_role.role_arn)
         CfnOutput(self, "ProdInstanceId", value=self.prod_instance.instance_id)
