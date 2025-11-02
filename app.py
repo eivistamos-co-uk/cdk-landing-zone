@@ -15,7 +15,10 @@ app = App()
 stack = Stack()
 
 # Account ID and Region
-env = {"account": "149536475647", "region": "eu-west-2"}
+env = {
+    "account": "149536475647", 
+    "region": "eu-west-2"
+    }
 
 class RootStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs):
