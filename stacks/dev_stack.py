@@ -1,5 +1,6 @@
 from aws_cdk import (
     Stack,
+    NestedStack,
     aws_s3 as s3,
     aws_ec2 as ec2,
     aws_iam as iam,
@@ -8,7 +9,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-class DevStack(Stack):
+class DevStack(NestedStack):
     def __init__(self, scope: Construct, construct_id: str, vpc: ec2.Vpc, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
