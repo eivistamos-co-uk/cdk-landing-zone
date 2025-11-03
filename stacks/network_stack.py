@@ -3,6 +3,7 @@ from aws_cdk import (
     NestedStack,
     aws_ec2 as ec2,
     CfnOutput,
+    Tags,
 )
 from constructs import Construct
 
@@ -33,6 +34,9 @@ class NetworkStack(NestedStack):
             ],
         )
 
+        # Tag DEV VPC resources
+        Tags.of(self.dev_vpc).add("Environment", "Dev")
+
         # ---------------------
         # PROD VPC (Multi-AZ)
         # ---------------------
@@ -55,6 +59,9 @@ class NetworkStack(NestedStack):
                 ),
             ],
         )
+
+        # Tag PROD VPC resources
+        Tags.of(self.prod_vpc).add("Environment", "Prod")
 
         # ---------------------
         # Outputs (optional)

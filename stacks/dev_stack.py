@@ -13,8 +13,6 @@ class DevStack(NestedStack):
     def __init__(self, scope: Construct, construct_id: str, vpc: ec2.Vpc, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
-        account_id = Stack.of(self).account
-
         # S3 Bucket
         self.dev_bucket = s3.Bucket(
             self,
