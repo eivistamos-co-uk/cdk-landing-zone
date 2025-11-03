@@ -45,7 +45,7 @@ Overview Diagram:
 
 Detailed Diagram:
 
-![Architecture Diagram](images\cdk-landing-architecture-detailed.png)
+![Architecture Diagram](images/cdk-landing-architecture-detailed.png)
 
 ---
  
@@ -72,7 +72,7 @@ The workflow (`.github/workflows/cdk-deploy.yml`) contains:
 
 Roles are currenty assumed by AccountRootPrincipal(). For production, consider: 
 - Assigning the roles to specific IAM users, groups, or SSO roles.
-- Narrowing 'DevOpsRole' (in [core_stack.py](stacks\core_stack.py)) service permissions as it currently uses service wildcards for demo purposes.
+- Narrowing 'DevOpsRole' (in [core_stack.py](stacks/core_stack.py)) service permissions as it currently uses service wildcards for demo purposes.
 
 Prod S3 Bucket removal policy currently set to DESTROY. For production, consider:
 - Adjusting Prod S3 Bucket removal policy (in [prod_stack.py](stacks/prod_stack.py)) to RETAIN.
