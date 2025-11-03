@@ -13,7 +13,10 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-# Notification email address
+# ----------------------
+# DEFINE NOTIFICATION EMAIL ADDRESS BELOW
+# ----------------------
+
 email = "eivistamos@gmail.com"
 
 class CoreStack(NestedStack):
@@ -35,7 +38,7 @@ class CoreStack(NestedStack):
             subs.EmailSubscription(email)
         )        
 
-        #3 IAM Roles
+        #2 IAM Roles
 
         #-DevOps Role
         self.devops_role = iam.Role(
@@ -72,7 +75,7 @@ class CoreStack(NestedStack):
             ],
         )        
 
-        #2 CloudWatch Log Group
+        #3 CloudWatch Log Group
         self.log_group = logs.LogGroup(
             self,
             "CoreLogGroup",
@@ -81,7 +84,7 @@ class CoreStack(NestedStack):
             removal_policy=RemovalPolicy.DESTROY #Set to RETAIN for prod.
         )
 
-        #2.3 Cloudwatch Metric Filter - for logs with ERROR
+        #4 Cloudwatch Metric Filter - for logs with ERROR
         self.error_metric = logs.MetricFilter(
             self,
             "ErrorMetricFilter",
@@ -92,7 +95,7 @@ class CoreStack(NestedStack):
             metric_value="1",
         )
 
-        #2.4 Cloudwatch Alarm - for ERROR logs
+        #5 Cloudwatch Alarm - for ERROR logs
         self.error_alarm = cw.Alarm(
             self,
             "ErrorAlarm",
@@ -103,13 +106,13 @@ class CoreStack(NestedStack):
             alarm_name="LandingZoneErrorAlarm"
         )
 
-        #2.5 Send Notification to SNS
+        #6 Send Notification to SNS
         self.error_alarm.add_alarm_action(cw_actions.SnsAction(self.notification_topic))
 
 
         self.output_arns()
 
-        #5 Output ARNS
+        #7 Output ARNS
     
     def output_arns(self):
         CfnOutput(self, "SNSTopicARN", value=self.notification_topic.topic_arn)

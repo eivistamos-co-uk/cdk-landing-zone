@@ -14,7 +14,10 @@ from stacks.prod_stack import ProdStack
 
 app = App()
 
-# Variables
+# ----------------------
+# DEFINE VARIABLES BELOW
+# ----------------------
+
 env = {
     "account": "149536475647", 
     "region": "eu-west-2"
@@ -27,8 +30,8 @@ class RootStack(Stack):
         super().__init__(scope, id, **kwargs)
 
         # Tag all project resources with the following:
-        Tags.of(app).add("Owner", "Eivis")
-        Tags.of(app).add("Project", "LandingZoneDemo")
+        Tags.of(app).add("Owner", owner)
+        Tags.of(app).add("Project", project_name)
 
         # Core Stack: Central services (logging, sns, kms)
         core_stack = CoreStack(self, "CoreStack")
