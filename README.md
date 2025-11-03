@@ -19,3 +19,9 @@ Roles are currenty assumed by AccountRootPrincipal(). Following least privilege 
 - CloudWatch Logs removal policy currently set to DESTROY. For production, consider:
 
 - Adjusting CloudWatch Logs removal policy (in [core_stack.py](stacks\core_stack.py)) to RETAIN.
+
+---
+
+- Adjust [cdk-deploy.yml](.github\workflows\cdk-deploy.yml) environment variables accordingly.
+- Add your AWS_ACCOUNT_ID as a GitHub Actions secret. This is required for the CI/CD workflow to run.
+- Adjust [app.py](app.py) variables section accordingly.

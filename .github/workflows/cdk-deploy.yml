@@ -1,0 +1,47 @@
+name: CDK Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+  IAM_GITHUB_ROLE_NAME: cdk-landing-zone-github
+
+jobs:
+  cdk-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install aws-cdk-lib constructs
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.IAM_GITHUB_ROLE_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Synth CDK
+        run: cdk synth
+
+      # Deploy landing zone automatically
+      - name: Deploy Landing Zone
+        run: |
+          cdk deploy LandingZoneRoot --require-approval never
