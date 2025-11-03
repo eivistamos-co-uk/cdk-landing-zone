@@ -42,16 +42,32 @@ class ProdStack(NestedStack):
             )
         )
 
-        #EC2 Instance
-        self.prod_instance = ec2.Instance(
+        # Get private subnets in the VPC
+        private_subnets = vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS).subnets
+
+        # First EC2 instance in first private subnet
+        self.prod_instance_1 = ec2.Instance(
             self,
-            "ProdInstance",
+            "ProdInstance1",
             instance_type=ec2.InstanceType("t3.micro"),
             machine_image=ec2.MachineImage.latest_amazon_linux2(),
             vpc=vpc,
+            vpc_subnets=ec2.SubnetSelection(subnets=[private_subnets[0]]),
+            role=self.instance_role,
+        )
+
+        # Second EC2 instance in second private subnet (high availability)
+        self.prod_instance_2 = ec2.Instance(
+            self,
+            "ProdInstance2",
+            instance_type=ec2.InstanceType("t3.micro"),
+            machine_image=ec2.MachineImage.latest_amazon_linux2(),
+            vpc=vpc,
+            vpc_subnets=ec2.SubnetSelection(subnets=[private_subnets[1]]),
             role=self.instance_role,
         )
 
         # Outputs
         CfnOutput(self, "ProdBucketName", value=self.prod_bucket.bucket_name)
-        CfnOutput(self, "ProdInstanceId", value=self.prod_instance.instance_id)
+        CfnOutput(self, "ProdInstance1Id", value=self.prod_instance_1.instance_id)
+        CfnOutput(self, "ProdInstance2Id", value=self.prod_instance_2.instance_id)        
