@@ -1,5 +1,4 @@
 from aws_cdk import (
-    Stack,
     NestedStack,
     aws_sns as sns,
     aws_sns_subscriptions as subs,
@@ -9,7 +8,6 @@ from aws_cdk import (
     aws_cloudwatch_actions as cw_actions,
     RemovalPolicy,
     CfnOutput,
-    aws_logs_destinations as destinations,
 )
 from constructs import Construct
 
@@ -19,14 +17,13 @@ from constructs import Construct
 
 email = "eivistamos@gmail.com"
 
+# Defining this stack as a nested stack
 class CoreStack(NestedStack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        account_id = Stack.of(self).account
-
-        #1 SNS Topic for Notifications
+        #1 Creating SNS topic for notifications
         self.notification_topic = sns.Topic(
             self,
             "DeploymentNotifications",
@@ -34,22 +31,25 @@ class CoreStack(NestedStack):
             topic_name="deployment-notifications",
         )
 
+        #1.1 Adding subscription to SNS topic for notifications
         self.notification_topic.add_subscription(
             subs.EmailSubscription(email)
         )        
 
-        #2 IAM Roles
+        # ----------------------
+        # 2. Creating human IAM roles below
+        # ----------------------
 
-        #-DevOps Role
+        #2.1 Creating DevOps role for managing services after deployment
         self.devops_role = iam.Role(
             self,
             "DevOpsRole",
-            assumed_by=iam.AccountRootPrincipal(), #ASSIGN TO IAM USER, GROUP, or SSO ROLES IN PROD.
+            assumed_by=iam.AccountRootPrincipal(), #ASSIGN TO IAM USER, GROUP, or SSO ROLES IN PROD
             role_name="DevOpsRole",
         )
 
-        #-DevOps Role Permissions
-        #Restrict once requirements are defined.
+        #2.1.1 Creating custom DevOps role permissions policy
+        #Restrict below permissions once requirements are defined
         self.devops_role.add_to_policy(
             iam.PolicyStatement(
                 actions=[ 
@@ -60,22 +60,22 @@ class CoreStack(NestedStack):
                     "logs:*",
                     "sns:*"
                 ],
-                resources=["*"],  # Restrict later to resources in the account
+                resources=["*"],  # Restrict later to resource ARNS in the account
             )
         )
 
-        #-ReadOnly Role
+        #2.2 Creating ReadOnly role for monitoring services after deployment
         self.read_only_role = iam.Role(
             self,
             "ReadOnlyRole",
-            assumed_by=iam.AccountRootPrincipal(),  #ASSIGN TO IAM USER, GROUP, or SSO ROLES IN PROD.
+            assumed_by=iam.AccountRootPrincipal(),  #ASSIGN TO IAM USER, GROUP, or SSO ROLES IN PROD
             role_name="ReadOnlyRole",
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name("ReadOnlyAccess")
             ],
         )        
 
-        #3 CloudWatch Log Group
+        #3 Creating centralised CloudWatch log group location to aggregate logs related to the stack
         self.log_group = logs.LogGroup(
             self,
             "CoreLogGroup",
@@ -84,7 +84,7 @@ class CoreStack(NestedStack):
             removal_policy=RemovalPolicy.DESTROY #Set to RETAIN for prod.
         )
 
-        #4 Cloudwatch Metric Filter - for logs with ERROR
+        #4 Creating CloudWatch metric filter to identify logs with 'ERROR' string
         self.error_metric = logs.MetricFilter(
             self,
             "ErrorMetricFilter",
@@ -95,7 +95,7 @@ class CoreStack(NestedStack):
             metric_value="1",
         )
 
-        #5 Cloudwatch Alarm - for ERROR logs
+        #5 Creating Cloudwatch alarm for the 'ERROR' string logs identified
         self.error_alarm = cw.Alarm(
             self,
             "ErrorAlarm",
@@ -106,13 +106,11 @@ class CoreStack(NestedStack):
             alarm_name="LandingZoneErrorAlarm"
         )
 
-        #6 Send Notification to SNS
+        #5.1 If the alarm is triggerd (IN_ALARM), then a notification will be sent to the email address specified 
         self.error_alarm.add_alarm_action(cw_actions.SnsAction(self.notification_topic))
 
-
+        #6 Output some of the resources deployed from this stack
         self.output_arns()
-
-        #7 Output ARNS
     
     def output_arns(self):
         CfnOutput(self, "SNSTopicARN", value=self.notification_topic.topic_arn)

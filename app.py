@@ -7,6 +7,7 @@ from aws_cdk import (
 
 from constructs import Construct
 
+# Importing stacks
 from stacks.core_stack import CoreStack
 from stacks.network_stack import NetworkStack
 from stacks.dev_stack import DevStack
@@ -25,6 +26,7 @@ env = {
 owner = "Eivis"
 project_name = "CDKLandingZone"
 
+# Creating nested stack structure
 class RootStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
@@ -49,5 +51,6 @@ class RootStack(Stack):
         prod_stack = ProdStack(self, "ProdStack", vpc=network_stack.prod_vpc)
         Tags.of(prod_stack).add("Environment", "Prod") 
 
+# Call 'cdk deploy LandingZoneRoot' to deploy all stacks
 RootStack(app, "LandingZoneRoot", env=env)
 app.synth()
